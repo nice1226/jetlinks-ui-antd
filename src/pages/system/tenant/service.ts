@@ -6,26 +6,29 @@ import { TenantItem } from "./data";
 
 class Service extends BaseService<TenantItem>{
     private tenant = localStorage.getItem('tenants-admin');
-    public create = (params: any) => defer(() => from(request(`/jetlinks/tenant/_create`, {
-        method: 'POST',
-        data: params
-    })).pipe(
-        map(resp => resp.result),
-    ));
+    public create = (params: any) => defer(
+        () => from(request(`/jetlinks/tenant/_create`, {
+            method: 'POST',
+            data: params
+        })).pipe(
+            map(resp => resp.result),
+        ));
 
-    public list = (params: any) => defer(() => from(request(`/jetlinks/tenant/detail/_query`, {
-        method: 'GET',
-        params
-    })).pipe(
-        filter(resp => resp.status === 200),
-        map(resp => resp.result),
-        map(result => {
-            const temp = result;
-            temp.data = result.data.
-                map((i: any) => ({ members: i.members, ...i.tenant }))
-            return temp;
-        })
-    ));
+    public list = (params: any) => defer(
+        () => from(request(`/jetlinks/tenant/detail/_query`, {
+            method: 'GET',
+            params
+        }
+        )).pipe(
+            filter(resp => resp.status === 200),
+            map(resp => resp.result),
+            map(result => {
+                const temp = result;
+                temp.data = result.data.
+                    map((i: any) => ({ members: i.members, ...i.tenant }))
+                return temp;
+            })
+        ));
 
     public queryById = (id: string) => defer(() => from(request(`/jetlinks/tenant/${id}`, {
         method: 'GET'
@@ -43,15 +46,21 @@ class Service extends BaseService<TenantItem>{
                 filter(resp => resp.status === 200),
                 map(resp => resp.result)
             )),
+        query2: (params: any) => defer(() => from(
+            request(`/jetlinks/tenant/members/_query`, {
+                method: 'GET',
+                params
+            })).pipe(
+                filter(resp => resp.status === 200),
+                map(resp => resp.result)
+            )),
         queryNoPaging: (params: any) => defer(() => from(
-            // request(`/jetlinks/tenant/${id}/members/_query/no-paging?paging=false`, {
             request(`/jetlinks/tenant/members/_query/no-paging?paging=false`, {
                 method: 'GET',
                 params
             })).pipe(
                 filter(resp => resp.status === 200),
                 flatMap(resp => from(resp.result)),
-
             )),
         bind: (id: string, data: { name: string, userId: string, admin: boolean }[]) => defer(
             () => from(
